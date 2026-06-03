@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fabrique à Neurones · Jeux</title>
+<style>
+:root{--navy:#1B2A4A;--gold:#C9A84C;--green:#27AE60;--red:#C0392B;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;font-family:'Segoe UI',Arial,sans-serif;background:var(--navy);color:#fff;}
+header{background:rgba(27,42,74,.98);border-bottom:2px solid var(--gold);padding:10px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+header h1{font-size:.85em;color:var(--gold);font-weight:900;flex:1;}
+.conn{width:10px;height:10px;border-radius:50%;background:#e74c3c;flex-shrink:0;transition:background .3s;}
+.conn.ok{background:#2ecc71;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.keep-open{background:linear-gradient(135deg,#1a3a1a,#27AE60);border-bottom:2px solid #2ecc71;padding:10px 16px;text-align:center;}
+.keep-open strong{display:block;font-size:.9em;font-weight:900;color:#fff;margin-bottom:2px;}
+.keep-open span{font-size:.74em;color:rgba(255,255,255,.8);}
+#debug-bar{background:rgba(0,0,0,.4);padding:5px 16px;font-size:.65em;color:rgba(255,255,255,.35);text-align:center;font-family:monospace;}
+.screen{display:none;padding:22px 16px 60px;max-width:480px;margin:0 auto;}
+.screen.on{display:block;}
+#sw{text-align:center;padding-top:40px;}
+.ico{font-size:3.2em;margin-bottom:12px;}
+.ttl{font-size:1.2em;font-weight:900;color:var(--gold);margin-bottom:8px;}
+.sub{color:rgba(255,255,255,.45);font-size:.83em;line-height:1.5;margin-bottom:20px;}
+.dots{display:flex;justify-content:center;gap:8px;margin-bottom:20px;}
+.d{width:9px;height:9px;border-radius:50%;background:var(--gold);animation:p 1.2s infinite;}
+.d:nth-child(2){animation-delay:.2s}.d:nth-child(3){animation-delay:.4s}
+@keyframes p{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+.wait-info{background:rgba(255,255,255,.05);border-radius:10px;padding:12px;font-size:.78em;color:rgba(255,255,255,.5);line-height:1.6;border-left:3px solid var(--gold);}
+.qtag{display:inline-block;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold);padding:4px 12px;border-radius:20px;font-size:.72em;font-weight:800;margin-bottom:14px;}
+.qtxt{font-size:1.05em;font-weight:800;line-height:1.4;margin-bottom:18px;}
+.opts{display:flex;flex-direction:column;gap:10px;}
+.opt{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:12px;padding:16px;font-size:.9em;font-weight:700;cursor:pointer;text-align:left;line-height:1.3;width:100%;color:#fff;-webkit-tap-highlight-color:transparent;transition:background .1s,border-color .1s;}
+.opt:active{transform:scale(.97);}
+.opt.sel{background:rgba(201,168,76,.2);border-color:var(--gold);color:var(--gold);}
+.sbtn{width:100%;margin-top:16px;background:var(--gold);color:var(--navy);border:none;padding:15px;border-radius:12px;font-size:1em;font-weight:900;cursor:pointer;display:none;}
+.sbtn.show{display:block;}
+.sbtn:disabled{opacity:.6;cursor:default;}
+#sd{text-align:center;padding-top:40px;}
+.dico{font-size:3em;margin-bottom:10px;}
+.dttl{font-size:1.2em;font-weight:900;color:var(--gold);margin-bottom:8px;}
+.dsub{color:rgba(255,255,255,.55);font-size:.83em;line-height:1.5;margin-bottom:20px;}
+.next-hint{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.4);border-radius:10px;padding:12px 14px;font-size:.82em;color:rgba(255,255,255,.75);line-height:1.5;}
+.manual-btn{margin-top:14px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.4);padding:8px 18px;border-radius:20px;font-size:.75em;cursor:pointer;}
+#se{text-align:center;padding-top:50px;}
+.eico{font-size:3em;margin-bottom:10px;}
+.emsg{font-size:.82em;color:rgba(255,255,255,.6);line-height:1.5;margin-bottom:18px;background:rgba(192,57,43,.1);border-radius:10px;padding:12px;border:1px solid rgba(192,57,43,.3);}
+.rbtn{background:var(--gold);color:var(--navy);border:none;padding:11px 24px;border-radius:10px;font-size:.9em;font-weight:900;cursor:pointer;}
+</style>
+</head>
+<body>
+<header>
+  <span>🧠</span>
+  <h1>Fabrique à Neurones · DGS Gosier</h1>
+  <div class="conn" id="conn"></div>
+</header>
+<div class="keep-open">
+  <strong>📱 Gardez cette page ouverte !</strong>
+  <span>Les questions s'affichent ici automatiquement</span>
+</div>
+<div id="debug-bar">Connexion en cours...</div>
+<div class="screen on" id="sw">
+  <div class="ico">🎮</div>
+  <div class="ttl">Vous êtes connecté(e) !</div>
+  <div class="sub">La prochaine question apparaîtra ici automatiquement.<br>Gardez cette page ouverte.</div>
+  <div class="dots"><div class="d"></div><div class="d"></div><div class="d"></div></div>
+  <div class="wait-info">💡 <strong>Pas besoin de rescanner</strong> — restez sur cette page. Chaque nouvelle question s'affiche ici automatiquement.</div>
+</div>
+<div class="screen" id="sq">
+  <div class="qtag" id="qtag">Question</div>
+  <div class="qtxt" id="qtxt"></div>
+  <div class="opts" id="opts"></div>
+  <button class="sbtn" id="sbtn" onclick="submitAnswer()">✅ Envoyer ma réponse</button>
+</div>
+<div class="screen" id="sd">
+  <div class="dico">✅</div>
+  <div class="dttl">Réponse envoyée !</div>
+  <div class="dsub">Votre réponse a bien été transmise à l'animateur.</div>
+  <div class="next-hint">🔔 <strong>Restez sur cette page</strong> — la prochaine question apparaîtra automatiquement dès que l'animateur la lancera.</div>
+  <br><button class="manual-btn" onclick="forcePoll()">🔄 Actualiser maintenant</button>
+</div>
+<div class="screen" id="se">
+  <div class="eico">⚠️</div>
+  <div class="emsg" id="emsg">Connexion perdue. Vérifiez votre WiFi.</div>
+  <button class="rbtn" onclick="restart()">🔄 Réessayer</button>
+</div>
+<script>
+var API='https://script.google.com/macros/s/AKfycbyUGuA_OBq-oSyDy2_iiHn4uK0GpQNBuk5usJwK78k8HHwyjcu5Rxh0pCoEn4MUdno5WQ/exec';
+var GAMES={
+  'brise-glace':{tag:'🎵 Brise-Glace',q:"Si vous étiez un instrument du Gwoka, lequel seriez-vous ? Qu'est-ce que ça dit de votre rôle dans l'équipe ?",opts:['🥁 Boula : le socle, fondation du groupe','🎵 Markeur : le soliste, créatif et libre','🎶 Kata : les baguettes, régulier et fiable','🎉 Chacha : les maracas, joie et énergie',"🗣️ Lewoze : la voix qui guide et inspire"]},
+  'kwiz-neurosciences':{tag:'⚡ Quiz Neurosciences',q:'Le cerveau humain peut-il vraiment faire du multitâche efficacement ?',opts:['✅ Vrai : certains cerveaux y arrivent très bien','❌ Faux : il bascule rapidement entre les tâches','🤔 Ça dépend du type de tâche',"💭 Seulement avec de l'entraînement intensif"]},
+  'tuckman':{tag:'🤝 Stade de votre équipe',q:"À quel stade de Tuckman situez-vous votre équipe aujourd'hui ?",opts:['🌱 Forming : on se découvre encore','⚡ Storming : des tensions existent','🤝 Norming : on trouve notre rythme','🚀 Performing : on excelle ensemble']},
+  'sondage-ambiance':{tag:'📊 Sondage Ambiance',q:"Comment décrivez-vous l'ambiance dans votre équipe en ce moment ?",opts:['🌩️ Tendue / difficile','🌤️ Correcte mais perfectible',"☀️ Bonne dans l'ensemble",'🌈 Excellente, très soudée']},
+  'cyberball':{tag:'🎾 Cyberball',q:"Si vous étiez la personne exclue dans l'expérience Cyberball, qu'auriez-vous ressenti en priorité ?",opts:["😣 Mal à l'aise et gêné(e)",'😔 Exclu(e) et ignoré(e)','😤 Frustré(e) et en colère',"😐 Indifférent(e) : c'est juste un jeu"]},
+  'coup-de-main':{tag:'🌺 Héritage Culturel',q:'Le "Koudmen" (coup de main) antillais est principalement un exemple de...',opts:['A : Intelligence collective ancestrale','B : Aide ponctuelle et informelle','C : Gestion sans hiérarchie','D : Toutes ces dimensions à la fois']},
+  'kwiz-memoire':{tag:'🧠 Quiz Mémorisation',q:'Quelle technique de mémorisation est scientifiquement la plus efficace ?',opts:['A : Relire ses notes plusieurs fois','B : Associer à une image ou émotion forte',"C : Écrire l'info une seule fois soigneusement",'D : Mémoriser juste avant de dormir']},
+  'kwiz-attention':{tag:'🎯 Quiz Attention',q:'Combien de temps notre cerveau maintient-il une attention focalisée intense sans pause ?',opts:['A : 5 à 10 minutes','B : 20 à 25 minutes','C : 45 minutes','D : 1 heure complète']},
+  'besoins-equipe':{tag:'💬 Sondage Final',q:"Ce dont votre équipe a le plus besoin en ce moment :",opts:['🗣️ Mieux communiquer entre nous','🙏 Plus de reconnaissance sincère','⚖️ Meilleure répartition des tâches','🎯 Des objectifs plus clairs et partagés']}
+};
+var currentGame=null,selectedOpt=null,answered={},pollTimer=null,errCount=0,pollCount=0;
+var pid='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+function api(p){return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+function poll(){
+  pollCount++;
+  api({action:'getState'}).then(function(state){
+    errCount=0;document.getElementById('conn').className='conn ok';
+    var act=(state&&state.activeActivity)?state.activeActivity.trim():'';
+    setDebug('Jeu actif : '+(act||'aucun')+' | Poll #'+pollCount);
+    if(!act){if(currentGame!==null){currentGame=null;selectedOpt=null;show('sw');}return;}
+    if(act!==currentGame){
+      currentGame=act;selectedOpt=null;
+      var g=GAMES[act];
+      if(!g){setDebug('Jeu inconnu : '+act);return;}
+      if(answered[act]){show('sd');}else{renderQ(g);show('sq');}
+    }
+  }).catch(function(err){
+    errCount++;document.getElementById('conn').className='conn';
+    setDebug('Erreur #'+errCount+' : '+(err.message||err));
+    if(errCount>=8){clearInterval(pollTimer);pollTimer=null;document.getElementById('emsg').textContent='Connexion perdue. Vérifiez votre WiFi.';show('se');}
+  });
+}
+function forcePoll(){if(pollTimer)clearInterval(pollTimer);poll();pollTimer=setInterval(poll,2500);}
+function renderQ(g){
+  document.getElementById('qtag').textContent=g.tag;
+  document.getElementById('qtxt').textContent=g.q;
+  var c=document.getElementById('opts');c.innerHTML='';
+  g.opts.forEach(function(t,i){var b=document.createElement('button');b.className='opt';b.textContent=t;b.onclick=function(){pick(i,b);};c.appendChild(b);});
+  var sb=document.getElementById('sbtn');sb.classList.remove('show');sb.disabled=false;sb.textContent='✅ Envoyer ma réponse';
+}
+function pick(i,btn){selectedOpt=i;document.querySelectorAll('.opt').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');document.getElementById('sbtn').classList.add('show');}
+function submitAnswer(){
+  if(selectedOpt===null||!currentGame)return;
+  var sb=document.getElementById('sbtn');sb.disabled=true;sb.textContent='⏳ Envoi...';
+  api({action:'submit',actId:currentGame,answer:String(selectedOpt),pid:pid})
+  .then(function(){answered[currentGame]=true;show('sd');})
+  .catch(function(){answered[currentGame]=true;show('sd');});
+}
+function show(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');}
+function setDebug(m){var b=document.getElementById('debug-bar');if(b)b.textContent=m;}
+function restart(){errCount=0;show('sw');if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(poll,2500);poll();}
+document.addEventListener('visibilitychange',function(){if(!document.hidden){if(pollTimer)clearInterval(pollTimer);pollTimer=null;errCount=0;poll();pollTimer=setInterval(poll,2500);}});
+restart();
+</script>
+</body>
+</html>
